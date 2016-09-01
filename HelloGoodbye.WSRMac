@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="UTF-16"?>
+<speechMacros>
+	<command>
+		<listenFor>Hello Brian</listenFor>
+		<speak>Hello Sir</speak>
+	</command>
+	<command>
+		<listenFor>Thanks Brian</listenFor>
+		<speak>You're Welcome Sir</speak>
+	</command>
+	<command>
+		<listenFor>Goodbye Brian</listenFor>
+		<speak>Good bye Sir</speak>
+		<sendKeys>{{CTRL}}{LWin}</sendKeys>
+	</command>
+	<Signature></Signature>
+</speechMacros>

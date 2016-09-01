@@ -1,0 +1,40 @@
+﻿<?xml version="1.0" encoding="UTF-16"?>
+<speechMacros>
+	<command>
+		<listenFor>Question [...] Brian</listenFor>
+		<setState name="questionPicked" value="{[...]}"/>
+		<setState name="questionActive" value="question_is_active" />
+		<speak>You want to know {[questionPicked]} ?</speak>
+	</command>
+	<command>
+		<stateIsSet name="questionActive" value="question_is_active" />
+		<listenFor>yes</listenFor>
+		<speak>one moment</speak>
+		<sendKeys>{{CTRL}}{LWin}</sendKeys>
+		<script language="JScript">
+			<![CDATA[
+				var xml_doc = new ActiveXObject("Microsoft.XMLDOM");
+				xml_doc.async = false;
+				xml_doc.load("http://dev.woweasy.net/macro/ask_question.php?question={[questionPicked]}");
+				var descriptions = xml_doc.getElementsByTagName("responseout"); 
+				Application.Speak(descriptions.item(0).text); 
+			]]>
+		</script> 
+		<waitFor seconds="1.0" />
+		<sendKeys>{{CTRL}}{LWin}</sendKeys>
+		<setState name="questionPicked" />
+		<setState name="questionActive" />
+	</command>
+	<command>
+		<stateIsSet name="questionActive" value="question_is_active" />
+		<listenFor>No [...] Brian</listenFor>
+		<setState name="questionPicked" value="{[...]}"/>
+		<setState name="questionActive" value="question_is_active" />
+		<speak>You would like to know {[questionPicked]} ?</speak>
+	</command>
+	<listenForList name="confirmation" propname="confirmation">
+		<item propval="1">Yes</item>
+		<item propval="0">No</item>
+	</listenForList>
+	<Signature></Signature>
+</speechMacros>
