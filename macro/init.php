@@ -42,3 +42,55 @@ function remove_diacritics($str) {
 	$str = filter_var($str, FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_HIGH);
 	return $str;
 }
+function curl_get($url,$get = array(), $options = array()) {
+	$defaults = array(
+        CURLOPT_URL => $url. (strpos($url, '?') === FALSE ? '?' : ''). http_build_query($get),
+        CURLOPT_HEADER => 0,
+        CURLOPT_RETURNTRANSFER => TRUE,
+        CURLOPT_TIMEOUT => 4,
+		CURLOPT_SSL_VERIFYPEER => 0,
+		CURLOPT_SSL_VERIFYHOST => 0,
+		CURLOPT_USERAGENT => 'Mozilla/5.0 (iPhone,U; CPU iPhone OS 2_2_1 like Mac OS X; en-us) AppleWebKit/525.18.1 (KHTML, like Gecko) version/3.1.1 Mobile/5H11 Safari/525.20'
+    );
+	$ch = curl_init();
+	curl_setopt_array($ch, ($options + $defaults));
+    if( ! $result = curl_exec($ch)) {
+        $response = array('status' => false, 'data' => null, 'msg' => curl_error($ch));
+    } else {
+		$response = array('status' => true, 'data' => $result, 'msg' => 'Recived '.strlen($result).' bytes');
+	}
+    curl_close($ch);
+    return $response;
+}
+function wiki_get($question) {
+	$question = str_replace(' ','+',$question);
+	$url = 'https://en.wikipedia.org/w/api.php';
+	$get = array(
+		'action' => 'opensearch',
+		'search' => $question,
+		'limit' => '1',
+		'namespace' => '0',
+		'format' => 'xml'
+	);
+	$response = curl_get($url, $get);
+	if ($response['status'] == false) {
+		return $response['msg'];
+	} else {
+		$xml = simplexml_load_string($response['data']);
+		if ($xml->Section->Item) {
+			$item = (array)$xml->Section->Item;
+			if (isset($item['Url'])) {
+				$response = curl_get(str_replace('https://en.','https://en.m.',$item['Url']));
+				include_once dirname(__FILE__) . '/simple_html_dom.php';
+				$html = str_get_html($response['data']);
+				foreach($html->find('div#content p') as $i => $e) {
+					if ($i == 0) {
+						$text = $e->innertext;
+						return remove_diacritics(strip_tags($text));
+					}
+				}
+			}
+		}
+	}
+	return '';
+}
